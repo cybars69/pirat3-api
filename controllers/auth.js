@@ -64,7 +64,7 @@ export function verify(req, res) {
     user.save().then(result =>{
       console.log("UserCreation Succes");
 
-      jwt.sign({userId: "aaa"}, 'qqqq', {}, function(err, token) {
+      jwt.sign({user}, "pirat3_jwt_secret_!@#$", {}, function(err, token) {
         if(err == null){
           console.log(token);
           res.send({ token: token });

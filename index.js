@@ -2,9 +2,10 @@ import express, { json } from "express";
 import bodyParser from "body-parser";
 const app = express();
 import auth from "./api/auth.js";
-
+import user from "./api/user.js"
 import pkg from 'mongoose';
 const { connect } = pkg;
+import authorize from "./controllers/authorization.js"
 
 var mongoDB =
   "mongodb+srv://vishalcs106:1sj09cs106@cluster0.irnkdpf.mongodb.net/pirat3?retryWrites=true&w=majority";
@@ -24,6 +25,7 @@ connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true })
     app.use(json({ extended: false }));
 
     app.use("/api/auth", auth);
+    app.use("/api/user", authorize(), user)
     const PORT = process.env.PORT || 8080;
     app.listen(PORT, () => console.log(`Server is running in port ${PORT}`));
   })
