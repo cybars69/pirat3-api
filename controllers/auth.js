@@ -5,6 +5,7 @@ import ethUtil from 'ethereumjs-util';
 import jwt from 'jsonwebtoken';
 
 export function signMessage(req, res) {
+  console.log(req.body.publicAddress);
   try {
     const address = req.body.publicAddress;
     const message = nanoid(5);

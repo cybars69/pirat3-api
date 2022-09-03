@@ -1,10 +1,18 @@
 import { Router } from "express";
 const router = Router();
 
-import { getUser, updateUser } from '../controllers/user.js';
+import { getUser, update, getUserId } from '../controllers/user.js';
+
+// router.put("/update",);
+router.patch("/update", update);
+router.get("/:getuserbyid", getUserId);
+router.get("/", getUser);
 
 
-router.put("/update", updateUser);
-router.get("/", getUser)
 
 export default router;
+// {
+//     firstname:req.body.firstname ,
+//     lastname:req.body.lastname, 
+//     email: req.body.email
+//   }
