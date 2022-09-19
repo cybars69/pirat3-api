@@ -1,11 +1,12 @@
-import Auth from "../models/auth.js";
-import User from "../models/user.js"
 import { nanoid } from "nanoid";
 import ethUtil from 'ethereumjs-util';
 import jwt from 'jsonwebtoken';
 
+import Auth from "../models/auth.js";
+import User from "../models/user.js"
+
 export function signMessage(req, res) {
-  console.log(req.body.publicAddress);
+  // console.log(req.body);
   try {
     const address = req.body.publicAddress;
     const message = nanoid(5);
@@ -14,11 +15,9 @@ export function signMessage(req, res) {
       signMessage: message,
       status: "created",
     });
-    console.log("Auth " + auth);
     auth
       .save()
       .then((result) => {
-        console.log("Saved");
         res.send({ signMessage: message });
       })
       .catch((err) => {
@@ -31,6 +30,7 @@ export function signMessage(req, res) {
 }
 
 export function verify(req, res) {
+  // console.log(req.body)
   try {
     const signature = req.body.signature;
     const message = req.body.message;
@@ -45,46 +45,42 @@ export function verify(req, res) {
       signatureParams.v,
       signatureParams.r,
       signatureParams.s
-  );
-  const addresBuffer = ethUtil.publicToAddress(publicKey);
-  const address = ethUtil.bufferToHex(addresBuffer);
+    );
+    const addresBuffer = ethUtil.publicToAddress(publicKey);
+    const address = ethUtil.bufferToHex(addresBuffer);
 
-    console.log("PK", address);
-  const filter = { publicAddress: address, signMessage: message, authStatus: "created" };
-  const update = { authStatus: "verified" };
+    //console.log("PK", address);
+    const filter = { publicAddress: address, signMessage: message, authStatus: "created" };
+    const update = { authStatus: "verified" };
 
-  Auth.updateOne(
+    Auth.updateOne(
       filter, update
-  ).then(result =>{
-    console.log("Update Success");
-    const uId = nanoid(7);
-    const user = new User({
-      userId: uId,
-      publicAddress: address,
-    });
-    user.save().then(result =>{
-      console.log("UserCreation Succes");
-
-      jwt.sign({user}, "pirat3_jwt_secret_!@#$", {}, function(err, token) {
-        if(err == null){
-          console.log(token);
-          res.send({ token: token });
-        } else{
-          console.log(err);
-        }
-        
+    ).then(result => {
+      //console.log("Update Success");
+      const uId = nanoid(7);
+      const user = new User({
+        userId: uId,
+        publicAddress: address,
       });
-      
-    }).catch(err =>{
-      res.status(500).send
+      user.save().then(result => {
+        jwt.sign({ user: uId }, process.env.JWT_AUTH, {}, function (err, token) {
+          if (err == null) {
+            //console.log(token);
+            res.send({ token: token });
+          } else {
+            console.log(err);
+          }
+
+        });
+
+      }).catch(err => {
+        res.status(500).send
+      })
+
+    }).catch(err => {
+      console.log(err);
+      res.status(500).send()
     })
-    
-  }).catch(err =>{
-    console.log(err);
-    res.status(500).send()
-  })
-
-
   } catch (err) {
     console.log(err);
     res.status(500).send
