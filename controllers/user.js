@@ -8,7 +8,6 @@ export function getUser(req, res) {
   User.findOne({
     userId: user
   }).then(result => {
-    console.log(result)
     if (result) {
       return res.status(200).send(result)
     } else {

@@ -26,7 +26,6 @@ export async function approveApplication(req, res) {
         if (!check_)
             return res.json({ success: false, message: "You do not have access" }).send()
         application.findOneAndUpdate({ _id: id }, { status: 1 }, { new: 1 }).then(_ => {
-            console.log(_)
             return res.json({ success: true, message: "Successfully Approved Application" }).send()
         })
     })
@@ -42,7 +41,6 @@ export async function rejectApplication(req, res) {
         if (!check)
             return res.json({ success: false, message: "You do not have access" }).send()
         application.findOneAndUpdate({ _id: id }, { status: 2 }).then(_ => {
-            console.log(_)
             return res.json({ success: true, message: "Successfully Rejected Application" }).send()
         })
     })
@@ -56,7 +54,6 @@ export async function getApplications(req, res) {
         if (!ownerDeets || !ownerDeets.length)
             return res.json({ success: false, message: "You do not have access" }).send()
 
-        console.log(ownerDeets)
         return res.json({ success: true, message: "Approval success" })
 
     })
@@ -69,7 +66,6 @@ export async function getApplicationById(req, res) {
         if (!applicationDeets)
             return res.json({ success: false, message: "Application does not exist" }).send()
 
-        console.log(applicationDeets)
         return res.json({ success: true, message: "Application found", data: applicationDeets })
 
     })

@@ -5,35 +5,37 @@ import jwt from 'jsonwebtoken';
 import Auth from "../models/auth.js";
 import User from "../models/user.js"
 
-export function signMessage(req, res) {
-  // console.log(req.body);
+export async function signMessage(req, res) {
   try {
-    const address = req.body.publicAddress;
-    const message = nanoid(5);
-    const auth = new Auth({
-      publicAddress: address,
-      signMessage: message,
-      status: "created",
-    });
-    auth
-      .save()
-      .then((result) => {
-        res.send({ signMessage: message });
+    const { publicAddress } = req.body;
+    const userInDb = await User.findOne({ publicAddress })
+    if (userInDb) {
+      return res.json({ success: true, nonce: userInDb.nonce }).send()
+    }
+
+    const nonce = nanoid(10);
+    const userId = nanoid(7);
+    const newUser = new User({
+      userId,
+      publicAddress,
+      nonce
+    })
+
+    newUser.save().then(response => {
+      return res.json({ success: true, nonce }).send()
+    })
+      .catch(e => {
+        console.log(e)
+        return res.json({ success: false }).send()
       })
-      .catch((err) => {
-        console.log(err);
-        res.status(500);
-      });
   } catch (err) {
     console.log(err);
   }
 }
 
-export function verify(req, res) {
-  // console.log(req.body)
+export async function verify(req, res) {
   try {
-    const signature = req.body.signature;
-    const message = req.body.message;
+    const { signature, message } = req.body
     const msgHex = ethUtil.bufferToHex(Buffer.from(message));
     const msgBuffer = ethUtil.toBuffer(msgHex);
     const msgHash = ethUtil.hashPersonalMessage(msgBuffer);
@@ -47,39 +49,27 @@ export function verify(req, res) {
       signatureParams.s
     );
     const addresBuffer = ethUtil.publicToAddress(publicKey);
-    const address = ethUtil.bufferToHex(addresBuffer);
+    const publicAddress = ethUtil.bufferToHex(addresBuffer);
 
-    //console.log("PK", address);
     const filter = { publicAddress: address, signMessage: message, authStatus: "created" };
     const update = { authStatus: "verified" };
 
-    Auth.updateOne(
-      filter, update
-    ).then(result => {
-      //console.log("Update Success");
-      const uId = nanoid(7);
-      const user = new User({
-        userId: uId,
-        publicAddress: address,
+    await User.updateOne({ publicAddress }, { nonce: nanoid(10) })
+
+    User.findOne({ publicAddress }).then(response => {
+      if (!response)
+        return res.json({ success: false, message: "Please try logging in again" }).send()
+
+
+      jwt.sign({ user: response.userId }, process.env.JWT_AUTH, {}, function (err, token) {
+        if (err == null) {
+          res.json({ success: false, token: token });
+        } else {
+          console.log(err);
+        }
       });
-      user.save().then(result => {
-        jwt.sign({ user: uId }, process.env.JWT_AUTH, {}, function (err, token) {
-          if (err == null) {
-            //console.log(token);
-            res.send({ token: token });
-          } else {
-            console.log(err);
-          }
+      return res.json({ success: true, nonce: userInDb.nonce }).send()
 
-        });
-
-      }).catch(err => {
-        res.status(500).send
-      })
-
-    }).catch(err => {
-      console.log(err);
-      res.status(500).send()
     })
   } catch (err) {
     console.log(err);

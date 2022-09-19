@@ -5,7 +5,6 @@ import jwt from 'jsonwebtoken';
 
 export default (req, res, next) => {
   const token = req.headers["authorization"];
-  // console.log(token)
   if (!token) {
     return res.status(401).send("401 : Unauthorized, No token");
   } else {

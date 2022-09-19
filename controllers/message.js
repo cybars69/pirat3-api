@@ -12,16 +12,13 @@ export async function newMessage(req, res) {
     if (!applicationId)
         return res.json({ success: false, message: "Please provide an application ID" }).send()
 
-    console.log(applicationId)
 
     application.findOne({ _id: applicationId }).then(response => {
-        console.log(response)
         if (!response)
             return res.json({ success: false, message: "Application ID not found" }).send()
 
         const newMessage = new message({ applicationId, sender, content })
         newMessage.save().then(response => {
-            console.log(response)
 
             return res.json({ success: true, message: "Message sent" }).send()
 
@@ -69,8 +66,6 @@ export async function limitedMessagesById(req, res) {
     const { applicationId } = req.body
 
     const { pageNum } = req.params
-
-    // res.send(pageNum)
 
     try {
         const { bountyId, applicantId } = await application.findOne({ _id: applicationId })
